@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.AI;
 using Server.Models;
 using Server.Services;
@@ -27,6 +28,21 @@ builder.Services.AddSingleton<ChatService>();
 
 var app = builder.Build();
 
+app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
+{
+    var ex = ctx.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+    var (status, message) = ex switch
+    {
+        ArgumentException e => (400, e.Message),
+        _                   => (500, "Failed to generate a response.")
+    };
+
+    ctx.Response.StatusCode = status;
+    ctx.Response.ContentType = "application/json";
+    await ctx.Response.WriteAsJsonAsync(new { error = message });
+}));
+
 app.MapGet("/", () => "Hello World!");
 
 app.MapPost("/api/chat", async (ChatRequest request, IValidator<ChatRequest> validator, ChatService chatService) =>
@@ -47,6 +63,7 @@ app.MapPost("/api/chat", async (ChatRequest request, IValidator<ChatRequest> val
     );
     return Results.Json(new { message });
 });
+
 
 app.MapGet("/api/provider", (LlmOptions opts) =>
     Results.Json(new { activeProvider = opts.Provider }));
