@@ -1,16 +1,15 @@
 using Microsoft.Extensions.AI;
 using Server.Models;
-using System.Collections.Concurrent;
+using Server.Repositories;
 
 namespace Server.Services;
 
 public class ChatService(
     IChatClient defaultClient,
     LlmOptions llmOptions,
+    IConversationRepository conversationRepository,
     ILoggerFactory loggerFactory)
 {
-    private readonly ConcurrentDictionary<string, List<ChatMessage>> _conversations = new();
-
     public async Task<string> ChatAsync(
         string conversationId,
         string prompt,
@@ -21,10 +20,7 @@ public class ChatService(
             ? BuildClient(LlmClientFactory.Create(providerOverride, llmOptions))
             : defaultClient;
 
-        var history = _conversations.GetOrAdd(conversationId, _ =>
-        [
-            new ChatMessage(ChatRole.System, "You are a helpful assistant.")
-        ]);
+        var history = conversationRepository.GetOrCreate(conversationId);
 
         history.Add(new ChatMessage(ChatRole.User, prompt));
 
@@ -37,6 +33,7 @@ public class ChatService(
 
         var text = response.Text ?? "";
         history.AddRange(response.Messages);
+        conversationRepository.Save(conversationId, history);
 
         return text;
     }
