@@ -27,7 +27,7 @@ public class ChatService(
         var response = await client.GetResponseAsync(history, new ChatOptions
         {
             ModelId = ResolveModelId(activeProvider),
-            MaxOutputTokens = 1000,
+            MaxOutputTokens = 200,
             Temperature = 0.7f
         });
 

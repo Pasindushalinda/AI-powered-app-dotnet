@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { type KeyboardEvent, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 import { FaArrowUp } from 'react-icons/fa';
+import ReactMarkdown from 'react-markdown';
 
 type FormData = {
    prompt: string;
@@ -55,7 +56,7 @@ const Chatbot = () => {
                         : 'bg-gray-100 text-black self-start'
                   }`}
                >
-                  {message.content}
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
                </p>
             ))}
          </div>
