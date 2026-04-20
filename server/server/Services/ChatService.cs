@@ -8,8 +8,19 @@ public class ChatService(
     IChatClient defaultClient,
     LlmOptions llmOptions,
     IConversationRepository conversationRepository,
-    ILoggerFactory loggerFactory)
+    ILoggerFactory loggerFactory,
+    IWebHostEnvironment environment)
 {
+    private readonly string _systemPrompt = BuildSystemPrompt(environment);
+
+    private static string BuildSystemPrompt(IWebHostEnvironment env)
+    {
+        var promptsPath = Path.Combine(env.ContentRootPath, "Prompts");
+        var template = File.ReadAllText(Path.Combine(promptsPath, "chatbot.txt"));
+        var parkInfo  = File.ReadAllText(Path.Combine(promptsPath, "WonderWorld.md"));
+        return template.Replace("{{parkInfo}}", parkInfo);
+    }
+
     public async Task<string> ChatAsync(
         string conversationId,
         string prompt,
@@ -21,6 +32,9 @@ public class ChatService(
             : defaultClient;
 
         var history = conversationRepository.GetOrCreate(conversationId);
+
+        if (history.Count == 0)
+            history.Add(new ChatMessage(ChatRole.System, _systemPrompt));
 
         history.Add(new ChatMessage(ChatRole.User, prompt));
 
