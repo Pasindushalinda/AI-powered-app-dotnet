@@ -1,12 +1,12 @@
+using System.ClientModel;
 using Anthropic.SDK;
 using Azure.AI.OpenAI;
 using GeminiDotnet;
 using GeminiDotnet.Extensions.AI;
 using Microsoft.Extensions.AI;
-using Server.Models;
-using System.ClientModel;
+using server.Models;
 
-namespace Server.Services;
+namespace server.Services;
 
 public static class LlmClientFactory
 {

@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Server.Filters;
+namespace server.Filters;
 
 public class ValidationFilter<T> : IEndpointFilter
 {

@@ -1,8 +1,8 @@
-using Server.Filters;
-using Server.Models;
-using Server.Services;
+using server.Filters;
+using server.Models;
+using server.Services;
 
-namespace Server.Endpoints;
+namespace server.Endpoints;
 
 public static class ChatEndpoints
 {

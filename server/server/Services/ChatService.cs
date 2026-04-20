@@ -1,8 +1,8 @@
 using Microsoft.Extensions.AI;
-using Server.Models;
-using Server.Repositories;
+using server.Models;
+using server.Repositories;
 
-namespace Server.Services;
+namespace server.Services;
 
 public class ChatService(
     IChatClient defaultClient,

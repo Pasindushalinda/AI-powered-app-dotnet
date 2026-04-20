@@ -1,7 +1,7 @@
-using Microsoft.Extensions.AI;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.AI;
 
-namespace Server.Repositories;
+namespace server.Repositories;
 
 public class ConversationRepository : IConversationRepository
 {

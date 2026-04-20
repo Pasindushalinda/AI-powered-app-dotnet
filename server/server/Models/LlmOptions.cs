@@ -1,4 +1,4 @@
-namespace Server.Models;
+namespace server.Models;
 
 public class LlmOptions
 {

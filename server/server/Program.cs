@@ -1,11 +1,13 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
-using Server.Endpoints;
-using Server.Models;
-using Server.Repositories;
-using Server.Services;
-using Server.Validators;
+using server.Data;
+using server.Endpoints;
+using server.Models;
+using server.Repositories;
+using server.Services;
+using server.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,9 @@ var llmOptions = builder.Configuration
     .Get<LlmOptions>() ?? new LlmOptions();
 
 builder.Services.AddSingleton(llmOptions);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSingleton<IChatClient>(sp =>
 {

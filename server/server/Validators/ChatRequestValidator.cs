@@ -1,7 +1,7 @@
 using FluentValidation;
-using Server.Models;
+using server.Models;
 
-namespace Server.Validators;
+namespace server.Validators;
 
 public class ChatRequestValidator : AbstractValidator<ChatRequest>
 {

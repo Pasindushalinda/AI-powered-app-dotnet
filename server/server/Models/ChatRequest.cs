@@ -1,4 +1,4 @@
-namespace Server.Models;
+namespace server.Models;
 
 public record ChatRequest(
     string Prompt,
