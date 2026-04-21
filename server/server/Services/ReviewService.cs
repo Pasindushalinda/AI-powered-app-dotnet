@@ -4,7 +4,7 @@ using server.Repositories;
 
 namespace server.Services;
 
-public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClient, IWebHostEnvironment environment)
+public class ReviewService(IReviewRepository reviewRepository, IProductRepository productRepository, LlmClient llmClient, IWebHostEnvironment environment)
 {
     private readonly string _promptTemplate = File.ReadAllText(
         Path.Combine(environment.ContentRootPath, "Prompts", "summarize-reviews.txt"));
@@ -14,6 +14,14 @@ public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClie
 
     public async Task<string> SummarizeReviewsAsync(int productId)
     {
+        var product = await productRepository.GetProductAsync(productId);
+        if (product is null)
+            throw new ArgumentException("Invalid product.");
+
+        var hasReviews = await reviewRepository.GetReviewsAsync(productId, limit: 1);
+        if (hasReviews.Count == 0)
+            throw new ArgumentException("There are no reviews to summarize.");
+
         var existing = await reviewRepository.GetReviewSummaryAsync(productId);
         if (existing is not null && existing.ExpiresAt > DateTime.UtcNow)
             return existing.Content;
