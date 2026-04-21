@@ -14,6 +14,10 @@ public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClie
 
     public async Task<string> SummarizeReviewsAsync(int productId)
     {
+        var existing = await reviewRepository.GetReviewSummaryAsync(productId);
+        if (existing is not null && existing.ExpiresAt > DateTime.UtcNow)
+            return existing.Content;
+
         var reviews = await reviewRepository.GetReviewsAsync(productId, limit: 10);
         var joinedReviews = string.Join("\n\n", reviews.Select(r => r.Content));
 
