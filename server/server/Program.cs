@@ -35,7 +35,11 @@ builder.Services.AddSingleton<IConversationRepository, ConversationRepository>()
 builder.Services.AddSingleton<ChatService>();
 
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<ReviewService>(sp =>
+    new ReviewService(
+        sp.GetRequiredService<IReviewRepository>(),
+        sp.GetRequiredService<IChatClient>(),
+        sp.GetRequiredService<LlmOptions>()));
 
 var app = builder.Build();
 

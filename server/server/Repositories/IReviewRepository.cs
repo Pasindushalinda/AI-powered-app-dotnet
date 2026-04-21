@@ -4,5 +4,5 @@ namespace server.Repositories;
 
 public interface IReviewRepository
 {
-    Task<List<Review>> GetReviewsAsync(int productId);
+    Task<List<Review>> GetReviewsAsync(int productId, int? limit = null);
 }

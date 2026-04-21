@@ -11,5 +11,11 @@ public static class ReviewEndpoints
             var reviews = await reviewService.GetReviewsAsync(id);
             return Results.Json(reviews);
         });
+
+        app.MapPost("/api/products/{id:int}/reviews/summarize", async (int id, ReviewService reviewService) =>
+        {
+            var summary = await reviewService.SummarizeReviewsAsync(id);
+            return Results.Json(new { summary });
+        });
     }
 }
