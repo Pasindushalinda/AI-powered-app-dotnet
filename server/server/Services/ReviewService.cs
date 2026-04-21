@@ -4,8 +4,11 @@ using server.Repositories;
 
 namespace server.Services;
 
-public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClient)
+public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClient, IWebHostEnvironment environment)
 {
+    private readonly string _promptTemplate = File.ReadAllText(
+        Path.Combine(environment.ContentRootPath, "Prompts", "summarize-reviews.txt"));
+
     public Task<List<Review>> GetReviewsAsync(int productId) =>
         reviewRepository.GetReviewsAsync(productId);
 
@@ -14,12 +17,7 @@ public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClie
         var reviews = await reviewRepository.GetReviewsAsync(productId, limit: 10);
         var joinedReviews = string.Join("\n\n", reviews.Select(r => r.Content));
 
-        var prompt = $"""
-            Summarize the following customer reviews into a short paragraph
-            highlighting key themes, both positive and negative:
-
-            {joinedReviews}
-            """;
+        var prompt = _promptTemplate.Replace("{{reviews}}", joinedReviews);
 
         var result = await llmClient.GenerateTextAsync(new GenerateTextOptions
         {
