@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using server.Data;
 using server.Endpoints;
+using server.Llm;
 using server.Models;
 using server.Repositories;
 using server.Services;
@@ -30,16 +31,13 @@ builder.Services.AddSingleton<IChatClient>(sp =>
         .Build(sp);
 });
 
+builder.Services.AddSingleton<LlmClient>();
 builder.Services.AddSingleton<IValidator<ChatRequest>, ChatRequestValidator>();
 builder.Services.AddSingleton<IConversationRepository, ConversationRepository>();
 builder.Services.AddSingleton<ChatService>();
 
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<ReviewService>(sp =>
-    new ReviewService(
-        sp.GetRequiredService<IReviewRepository>(),
-        sp.GetRequiredService<IChatClient>(),
-        sp.GetRequiredService<LlmOptions>()));
+builder.Services.AddScoped<ReviewService>();
 
 var app = builder.Build();
 

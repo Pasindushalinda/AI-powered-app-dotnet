@@ -1,17 +1,15 @@
 using Microsoft.Extensions.AI;
-using server.Models;
+using server.Llm;
 using server.Repositories;
 
 namespace server.Services;
 
 public class ChatService(
-    IChatClient defaultClient,
-    LlmOptions llmOptions,
+    LlmClient llmClient,
     IConversationRepository conversationRepository,
-    ILoggerFactory loggerFactory,
     IWebHostEnvironment environment)
 {
-    private readonly string _systemPrompt = BuildSystemPrompt(environment);
+    private readonly string _instructions = BuildSystemPrompt(environment);
 
     private static string BuildSystemPrompt(IWebHostEnvironment env)
     {
@@ -26,43 +24,33 @@ public class ChatService(
         string prompt,
         string? providerOverride = null)
     {
-        var activeProvider = providerOverride ?? llmOptions.Provider;
-        var client = providerOverride is not null
-            ? BuildClient(LlmClientFactory.Create(providerOverride, llmOptions))
-            : defaultClient;
-
         var history = conversationRepository.GetOrCreate(conversationId);
+        var fullPrompt = BuildPrompt(history, prompt);
 
-        if (history.Count == 0)
-            history.Add(new ChatMessage(ChatRole.System, _systemPrompt));
-
-        history.Add(new ChatMessage(ChatRole.User, prompt));
-
-        var response = await client.GetResponseAsync(history, new ChatOptions
+        var result = await llmClient.GenerateTextAsync(new GenerateTextOptions
         {
-            ModelId = ResolveModelId(activeProvider),
-            MaxOutputTokens = 200,
-            Temperature = 0.7f
+            Prompt = fullPrompt,
+            Instructions = _instructions,
+            Temperature = 0.7f,
+            MaxTokens = 200
         });
 
-        var text = response.Text ?? "";
-        history.AddRange(response.Messages);
+        history.Add(new ChatMessage(ChatRole.User, prompt));
+        history.Add(new ChatMessage(ChatRole.Assistant, result.Text));
         conversationRepository.Save(conversationId, history);
 
-        return text;
+        return result.Text;
     }
 
-    private string ResolveModelId(string provider) => provider.ToLower() switch
+    private static string BuildPrompt(IList<ChatMessage> history, string newPrompt)
     {
-        "openai" => llmOptions.OpenAI.ModelId,
-        "azure"  => llmOptions.Azure.DeploymentName,
-        "gemini" => llmOptions.Gemini.ModelId,
-        "claude" => llmOptions.Claude.ModelId,
-        _        => throw new ArgumentException($"Unknown provider: {provider}")
-    };
+        if (history.Count == 0)
+            return newPrompt;
 
-    private IChatClient BuildClient(IChatClient inner) =>
-        new ChatClientBuilder(inner)
-            .UseLogging(loggerFactory)
-            .Build();
+        var lines = history
+            .Where(m => m.Role != ChatRole.System)
+            .Select(m => $"{m.Role}: {m.Text}");
+
+        return string.Join("\n", lines) + $"\nuser: {newPrompt}";
+    }
 }

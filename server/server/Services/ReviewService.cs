@@ -1,11 +1,10 @@
-using Microsoft.Extensions.AI;
 using server.Domain;
-using server.Models;
+using server.Llm;
 using server.Repositories;
 
 namespace server.Services;
 
-public class ReviewService(IReviewRepository reviewRepository, IChatClient chatClient, LlmOptions llmOptions)
+public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClient)
 {
     public Task<List<Review>> GetReviewsAsync(int productId) =>
         reviewRepository.GetReviewsAsync(productId);
@@ -22,13 +21,13 @@ public class ReviewService(IReviewRepository reviewRepository, IChatClient chatC
             {joinedReviews}
             """;
 
-        var response = await chatClient.GetResponseAsync(prompt, new ChatOptions
+        var result = await llmClient.GenerateTextAsync(new GenerateTextOptions
         {
-            ModelId = llmOptions.Claude.ModelId,
+            Prompt = prompt,
             Temperature = 0.2f,
-            MaxOutputTokens = 500
+            MaxTokens = 500
         });
 
-        return response.Text;
+        return result.Text;
     }
 }
