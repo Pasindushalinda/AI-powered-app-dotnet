@@ -34,6 +34,9 @@ builder.Services.AddSingleton<IValidator<ChatRequest>, ChatRequestValidator>();
 builder.Services.AddSingleton<IConversationRepository, ConversationRepository>();
 builder.Services.AddSingleton<ChatService>();
 
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<ReviewService>();
+
 var app = builder.Build();
 
 app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
@@ -54,5 +57,6 @@ app.UseExceptionHandler(errApp => errApp.Run(async ctx =>
 app.MapGet("/", () => "Hello World!");
 
 app.MapChatEndpoints();
+app.MapReviewEndpoints();
 
 app.Run();
