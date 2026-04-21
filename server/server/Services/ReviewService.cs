@@ -26,6 +26,8 @@ public class ReviewService(IReviewRepository reviewRepository, LlmClient llmClie
             MaxTokens = 500
         });
 
+        await reviewRepository.StoreReviewSummaryAsync(productId, result.Text);
+
         return result.Text;
     }
 }
