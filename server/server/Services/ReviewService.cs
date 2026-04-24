@@ -9,8 +9,17 @@ public class ReviewService(IReviewRepository reviewRepository, IProductRepositor
     private readonly string _promptTemplate = File.ReadAllText(
         Path.Combine(environment.ContentRootPath, "Prompts", "summarize-reviews.txt"));
 
-    public Task<List<Review>> GetReviewsAsync(int productId) =>
-        reviewRepository.GetReviewsAsync(productId);
+    public async Task<(List<Review> Reviews, string? Summary)> GetReviewsAsync(int productId)
+    {
+        var product = await productRepository.GetProductAsync(productId);
+        if (product is null)
+            throw new ArgumentException("Product does not exist.");
+
+        var reviews = await reviewRepository.GetReviewsAsync(productId);
+        var summary = await reviewRepository.GetReviewSummaryAsync(productId);
+
+        return (reviews, summary);
+    }
 
     public async Task<string> SummarizeReviewsAsync(int productId)
     {
@@ -23,8 +32,8 @@ public class ReviewService(IReviewRepository reviewRepository, IProductRepositor
             throw new ArgumentException("There are no reviews to summarize.");
 
         var existing = await reviewRepository.GetReviewSummaryAsync(productId);
-        if (existing is not null && existing.ExpiresAt > DateTime.UtcNow)
-            return existing.Content;
+        if (existing is not null)
+            return existing;
 
         var reviews = await reviewRepository.GetReviewsAsync(productId, limit: 10);
         var joinedReviews = string.Join("\n\n", reviews.Select(r => r.Content));

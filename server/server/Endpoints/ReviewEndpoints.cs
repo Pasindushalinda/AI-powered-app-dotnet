@@ -8,8 +8,15 @@ public static class ReviewEndpoints
     {
         app.MapGet("/api/products/{id:int}/reviews", async (int id, ReviewService reviewService) =>
         {
-            var reviews = await reviewService.GetReviewsAsync(id);
-            return Results.Json(reviews);
+            try
+            {
+                var (reviews, summary) = await reviewService.GetReviewsAsync(id);
+                return Results.Json(new { summary, reviews });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.NotFound(new { error = ex.Message });
+            }
         });
 
         app.MapPost("/api/products/{id:int}/reviews/summarize", async (int id, ReviewService reviewService) =>

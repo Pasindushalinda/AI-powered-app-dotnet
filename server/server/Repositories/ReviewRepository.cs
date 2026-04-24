@@ -15,8 +15,12 @@ public class ReviewRepository(AppDbContext db) : IReviewRepository
         return (limit.HasValue ? query.Take(limit.Value) : query).ToListAsync();
     }
 
-    public Task<Summary?> GetReviewSummaryAsync(int productId) =>
-        db.Summaries.FirstOrDefaultAsync(s => s.ProductId == productId);
+    public async Task<string?> GetReviewSummaryAsync(int productId)
+    {
+        var summary = await db.Summaries.FirstOrDefaultAsync(
+            s => s.ProductId == productId && s.ExpiresAt > DateTime.UtcNow);
+        return summary?.Content;
+    }
 
     public async Task StoreReviewSummaryAsync(int productId, string summary)
     {

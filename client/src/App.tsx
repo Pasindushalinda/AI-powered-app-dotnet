@@ -1,10 +1,10 @@
 import './App.css';
-import Chatbot from '@/components/chat/chatbot.tsx';
+import ReviewList from '@/components/reviews/review-list.tsx';
 
 function App() {
    return (
       <div className="p-4 h-screen w-full">
-         <Chatbot />
+         <ReviewList productId={1} />
       </div>
    );
 }
